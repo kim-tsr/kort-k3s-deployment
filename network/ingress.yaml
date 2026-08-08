@@ -1,0 +1,31 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kort
+  namespace: kort
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`/api`)
+      kind: Rule
+      priority: 30
+      middlewares:
+        - name: strip-api
+      services:
+        - name: api
+          port: 8000
+
+    - match: PathRegexp(`^/[a-z0-9]{6}$`)
+      kind: Rule
+      priority: 20
+      services:
+        - name: api
+          port: 8000
+
+    - match: PathPrefix(`/`)
+      kind: Rule
+      priority: 1
+      services:
+        - name: web
+          port: 80

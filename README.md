@@ -11,8 +11,7 @@
 - [x] **1. Conteneuriser l'application** — création des Dockerfiles et lancement en local, pour comprendre comment les composants interagissent entre eux.
 - [x] **2. Premier déploiement basique** — manifests simples : `Deployment` / `StatefulSet` + `Service`.
 - [x] **3. Élaboration d'un plan** — identifier les contraintes de chaque composant : nombre de replicas, avec ou sans état, besoins de connexion, tâches récurrentes (`cleaner`)…
-- [ ] **4. Mise en place des contraintes** — amélioration continue des conteneurs avec des mesures de consommation et ajout de probes adaptées : `liveness`, `readiness` et `startup`.
-
+- [x] **4. Mise en place des contraintes** — amélioration continue des conteneurs avec des mesures de consommation et ajout de probes adaptées : `liveness`, `readiness` et `startup`.
 ---
 
 ## 🐳 1. Conteneuriser l'application
@@ -109,4 +108,16 @@ Puis je refais avec des testes de charge.
 > retenues et les probes mises en place.*
 
 - Ajout des 3 probes: startup, liveness et readiness.
-- En fonction de la criticité des composants je choisis le QoS: Best Effort < Guaranteed < Burstable, en fais mes requests/limits de ressources en fonction.
+- En fonction de la criticité des composants je choisis le QoS: Best Effort <
+  Guaranteed < Burstable, en fais mes requests/limits de ressources en
+  fonction.
+
+  L'avantage des probes c'est eux qui vont determiner sur un pod est down, si
+il faut le restart ou si il est en vie. Dans le cas de l'API, si ma DB postgres
+est morte ça ne sert à rien de tuer mon pod même si sur /readyz ça renvoie une
+erreur puisque Postgres est mort. Donc la readyness ne sera pas bonne mais la
+liveness sera toujours bonne car le pod API est toujours en vie.
+
+ Mise en place des 3 probes pour les composants où ça a du sens et d'un QoS
+adapté.
+

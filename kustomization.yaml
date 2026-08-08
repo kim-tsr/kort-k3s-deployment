@@ -15,3 +15,5 @@ resources:
   - worker/deployment.yaml
   - redis/deployment.yaml
   - redis/service.yaml
+  - network/ingress.yaml
+  - network/middleware.yaml
