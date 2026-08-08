@@ -1,0 +1,98 @@
+# 🔗 Retex — Conteneurisation et déploiement d'un raccourcisseur d'URL
+
+> **Retour d'expérience** sur la mise en conteneur puis le déploiement de l'application `kort`
+> sur un cluster **K3s**. Ce document raconte le cheminement, les choix faits et les raisons
+> derrière chaque décision, pas seulement le résultat final.
+
+---
+
+## 🗺️ Roadmap
+
+- [x] **1. Conteneuriser l'application** — création des Dockerfiles et lancement en local, pour comprendre comment les composants interagissent entre eux.
+- [x] **2. Premier déploiement basique** — manifests simples : `Deployment` / `StatefulSet` + `Service`.
+- [x] **3. Élaboration d'un plan** — identifier les contraintes de chaque composant : nombre de replicas, avec ou sans état, besoins de connexion, tâches récurrentes (`cleaner`)…
+- [ ] **4. Mise en place des contraintes** — amélioration continue des conteneurs avec des mesures de consommation et ajout de probes adaptées : `liveness`, `readiness` et `startup`.
+
+---
+
+## 🐳 1. Conteneuriser l'application
+
+Cette étape s'est faite sur le dépôt où se trouve le code source :
+👉 [kim-tsr/kort-URL-shorter](https://github.com/kim-tsr/kort-URL-shorter)
+Les images Docker ont été poussées sur le registre public **Docker Hub**.
+
+### Registry publique ou privée ?
+
+J'ai hésité à héberger une registry privée et à pousser dessus, mais le choix du Docker Hub a
+primé, pour deux raisons :
+
+- je n'ai **aucune donnée confidentielle** et le code source est public ;
+- le Docker Hub permet à **n'importe qui** de tester et de déployer l'application sur son propre
+  cluster K3s.
+
+### Construction des images
+
+Les Dockerfiles sont en **multi-stage**, avec les layers les plus immuables en haut pour
+optimiser la vitesse à chaque re-build (le cache Docker n'est invalidé qu'à partir de la couche
+modifiée).
+
+Autres choix :
+
+- ajout d'un **utilisateur non-root** pour lancer l'application ;
+- flag `--no-cache-dir` sur le `pip install` pour éviter le cache et obtenir une image plus légère.
+
+Au final : **3 images basées sur `python:3.12-slim`** (api, worker, cleaner) et **une image
+`nginx`** pour servir la page statique.
+
+---
+
+## ☸️ 2. Premier déploiement sur le cluster K3s
+
+Création des premiers manifests, basiques : juste des `Deployment` et un `StatefulSet`, avec un
+`Service` pour chacun.
+
+Le but ici est **uniquement de faire tourner l'application** et d'avoir une version qui fonctionne
+sur le cluster. Seul Postgres est déployé en `StatefulSet`. Pour l'instant, toutes les images
+n'ont qu'**un seul replica**.
+
+> [!NOTE]
+> On ne cherche pas encore la résilience ni la performance : on cherche une base qui marche,
+> sur laquelle itérer.
+
+---
+
+## 📊 3. Benchmark des besoins et amélioration continue des manifests
+
+Une fois qu'on a des manifests qui fonctionnent, l'objectif devient d'avoir une application qui
+fonctionne **bien**. Pour cela, il faut mieux comprendre les besoins métier de chaque composant.
+
+Pour ça, je pars de ce tableau :
+
+| Composant  | Type de charge             | Écoute     | Persistance  | Dépendances     |
+|------------|----------------------------|------------|--------------|-----------------|
+| `api`      | sans état, reçoit HTTP     | TCP 8000   | non          | postgres, redis |
+| `web`      | statique, reçoit HTTP      | TCP 80     | non          | api (via `/api`)|
+| `worker`   | sans état, ne reçoit rien  | aucun port | non          | postgres, redis |
+| `postgres` | avec état                  | TCP 5432   | **oui**      | —               |
+| `redis`    | cache / broker             | TCP 6379   | optionnelle  | —               |
+| `cleaner`  | tâche ponctuelle           | aucun port | non          | postgres        |
+
+*Tableau que l'on retrouve dans le `README.md` du code source.*
+
+### ⏰ Le cas du `cleaner`
+
+On passe le `cleaner` en **`CronJob`** : toutes les heures, un `Job` est créé, qui lance lui-même
+un pod `cleaner` chargé de nettoyer les liens expirés.
+
+### 🧪 Benchmark des ressources
+
+Benchmark des ressources de chaque composant, en montant en charge et en observant le
+comportement sous contrainte (*chaos engineering*). L'objectif : pouvoir fixer des `requests` et
+des `limits` cohérentes pour chaque pod, plutôt que des valeurs choisies au hasard.
+
+---
+
+## 🔧 4. Mise à jour des manifests selon les contraintes trouvées
+
+> 🚧 *Section en cours de rédaction — à compléter avec les valeurs de `requests`/`limits`
+> retenues et les probes mises en place.*
