@@ -19,3 +19,9 @@ spec:
                 name: kort-config
             - secretRef:
                 name: kort-secret
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              memory: 192Mi

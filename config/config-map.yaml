@@ -8,3 +8,4 @@ data:
   POSTGRES_DB: "kort"
   REDIS_URL: "redis://redis:6379/0"
   CLICK_STREAM: "clicks"
+  CLICK_GROUP: "aggregators"

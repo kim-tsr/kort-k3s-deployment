@@ -90,9 +90,23 @@ Benchmark des ressources de chaque composant, en montant en charge et en observa
 comportement sous contrainte (*chaos engineering*). L'objectif : pouvoir fixer des `requests` et
 des `limits` cohérentes pour chaque pod, plutôt que des valeurs choisies au hasard.
 
+Je mesure avec `kubectl top pod -n kort --containers` et j'obtiens:
+
+POD                       NAME       CPU(cores)   MEMORY(bytes)
+api-868bb46955-77gjn      api        2m           50Mi
+postgres-0                postgres   1m           57Mi
+redis-7799d4bddd-qm8wq    redis      2m           11Mi
+web-5547ff8855-lzslw      myapp      0m           4Mi
+worker-6c65876cbd-4hq8d   worker     1m           24Mi
+
+Puis je refais avec des testes de charge.
+
 ---
 
 ## 🔧 4. Mise à jour des manifests selon les contraintes trouvées
 
 > 🚧 *Section en cours de rédaction — à compléter avec les valeurs de `requests`/`limits`
 > retenues et les probes mises en place.*
+
+- Ajout des 3 probes: startup, liveness et readiness.
+- En fonction de la criticité des composants je choisis le QoS: Best Effort < Guaranteed < Burstable, en fais mes requests/limits de ressources en fonction.

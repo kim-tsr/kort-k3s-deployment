@@ -13,8 +13,28 @@ spec:
         app: web
     spec:
       containers:
-        - name: myapp
+        - name: web
           image: kimtsr/kort-web:1.0
           ports:
             - containerPort: 80
               name: web
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: web
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: web
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3

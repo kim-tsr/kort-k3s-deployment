@@ -21,12 +21,41 @@ spec:
                 name: kort-config
             - secretRef:
                 name: kort-secret
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data
           ports:
             - containerPort: 5432
               name: postgres
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            failureThreshold: 30
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 250m
+              memory: 512Mi
   volumeClaimTemplates:
     - metadata:
         name: data

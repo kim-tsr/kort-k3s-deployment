@@ -4,8 +4,12 @@ metadata:
   name: cleaner
 spec:
   schedule: "@hourly"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
+      backoffLimit: 5
       template:
         spec:
           containers:
@@ -16,4 +20,10 @@ spec:
                     name: kort-config
                 - secretRef:
                     name: kort-secret
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 128Mi
           restartPolicy: Never
