@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kort
+resources:
+  - namespace.yaml
+  - config/config-map.yaml
+  - config/secret.yaml
+  - api/deployment.yaml
+  - api/service.yaml
+  - web/deployment.yaml
+  - web/service.yaml
+  - postgres/statefulsets.yaml
+  - postgres/service.yaml
+  - cleaner/cronjob.yaml
+  - worker/deployment.yaml
+  - redis/deployment.yaml
+  - redis/service.yaml

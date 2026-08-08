@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cleaner
+spec:
+  schedule: "@hourly"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: cleaner
+              image: kimtsr/kort-cleaner:1.0
+              envFrom:
+                - configMapRef:
+                    name: kort-config
+                - secretRef:
+                    name: kort-secret
+          restartPolicy: Never
