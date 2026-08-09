@@ -1,0 +1,13 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kort-api
+  namespace: kort
+spec:
+  selector:
+    matchLabels:
+      app: api
+  endpoints:
+    - port: api
+      path: /metrics
+      interval: 30s
