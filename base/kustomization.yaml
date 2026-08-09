@@ -13,7 +13,7 @@ configMapGenerator:
       - CLICK_GROUP=aggregators
 resources:
   - namespace.yaml
-  - config/secret.yaml
+  - config/sealed-secret.yaml
   - api/deployment.yaml
   - api/service.yaml
   - web/deployment.yaml
