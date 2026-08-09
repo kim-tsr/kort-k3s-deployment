@@ -13,7 +13,8 @@
 - [x] **3. Élaboration d'un plan** — identifier les contraintes de chaque composant : nombre de replicas, avec ou sans état, besoins de connexion, tâches récurrentes (`cleaner`)…
 - [x] **4. Mise en place des contraintes** — amélioration continue des conteneurs avec des mesures de consommation et ajout de probes adaptées : `liveness`, `readiness` et `startup`.
 - [x] **5. Accès réseau externe** - mise en place de l'ingress et de la réécriture des routes
-- [ ] **6. Packaging de manifests** - Kustomize 
+- [x] **6. Packaging de manifests** - Kustomize 
+- [x] **7. GitOps** - Mise en place d'ArgoCD
 ---
 
 ## 🐳 1. Conteneuriser l'application
@@ -151,4 +152,30 @@ exmple /api/links -> /links
 
 ## 6. Packaging de manifests
 
+  Split en 2 dossiers base + overlays avec un environnement de prod pour overide
+les images plus facilement. Plus remplacement du ConfigMap par un
+ConfigMapGenerator pour qu'a chaque modification des valeurs du ConfigMap ca en
+recrée un nouveau avec un hash different ce qui force le Deployment a prendre
+les nouvelles valeurs.
 
+
+## 7. GitOps et ArgoCD
+ 
+  On passe notre source de vérité à Git, **GitOps**, maintenant je push mes
+manifests sur Git et mon infra les répliques sans que j'ai à apply à la main.
+ArgoCD est sur mon cluster, il écoute mon repo et à chaque modification
+l'applique.
+
+  Permet les réconciliations en cas de drift, si par exemple je fais une
+mauvais manip et fais: `kubectl scale deploy/api -n kort --replicas=10`,
+ArgoCD va voir qu'il y a une différence.
+
+### Secret
+
+  Pour qu'ArgoCD puisse déployer l'infrastructure il faut qu'il est accès au
+secret, mais pour cela il faut qu'ils soient dans le repository et ducoup tout
+le monde y aurait accès.
+
+  Pour répondre à cela on utilise du chiffrement asymétrique avec *sealed-secret*.
+Une clé privé sur le cluster une clé publique chez moi, je chiffre avec la
+clé publique les secrets et le cluster peut les déchiffrer avec la clé privé.
