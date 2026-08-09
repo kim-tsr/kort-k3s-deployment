@@ -15,6 +15,7 @@
 - [x] **5. Accès réseau externe** - mise en place de l'ingress et de la réécriture des routes
 - [x] **6. Packaging de manifests** - Kustomize 
 - [x] **7. GitOps** - Mise en place d'ArgoCD
+- [ ] **8. Obsevabilité**
 ---
 
 ## 🐳 1. Conteneuriser l'application
@@ -170,6 +171,9 @@ l'applique.
 mauvais manip et fais: `kubectl scale deploy/api -n kort --replicas=10`,
 ArgoCD va voir qu'il y a une différence.
 
+  Avec un accès à l'interface avec du port-forward: `kubectl port-forward -n
+argocd svc/argocd-server 8080:443`, qui permet de voir l'état du cluster
+
 ### Secret
 
   Pour qu'ArgoCD puisse déployer l'infrastructure il faut qu'il est accès au
@@ -179,3 +183,16 @@ le monde y aurait accès.
   Pour répondre à cela on utilise du chiffrement asymétrique avec *sealed-secret*.
 Une clé privé sur le cluster une clé publique chez moi, je chiffre avec la
 clé publique les secrets et le cluster peut les déchiffrer avec la clé privé.
+
+## 8. Observabilité
+
+  Pour garder une liste de tous les manifests helm que j'utilise je suis partis
+sur un pattern app-of-apps dans le dossier argocd/ à l'interieur il y a un
+dossier app qui contient tous les composants exterieurs que je souhaite: 
+
+- sealed-secret
+- prometheus
+- tout les autres à venir, Loki, OpenTelemtry, certmanager...
+
+    J'ai déployer kube-prometheus-stack qui a un ServiceMonitor sur le /api/metrics
+de l'api pour avoir des indicateurs RED: Rate, Error, Duration
