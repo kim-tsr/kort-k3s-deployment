@@ -14,7 +14,7 @@ spec:
         spec:
           containers:
             - name: cleaner
-              image: kimtsr/kort-cleaner:1.0
+              image: kimtsr/kort-cleaner:latest
               envFrom:
                 - configMapRef:
                     name: kort-config

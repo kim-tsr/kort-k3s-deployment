@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: kimtsr/kort-api:1.0
+          image: kimtsr/kort-api:latest
           envFrom:
             - configMapRef:
                 name: kort-config

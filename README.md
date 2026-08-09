@@ -12,6 +12,8 @@
 - [x] **2. Premier déploiement basique** — manifests simples : `Deployment` / `StatefulSet` + `Service`.
 - [x] **3. Élaboration d'un plan** — identifier les contraintes de chaque composant : nombre de replicas, avec ou sans état, besoins de connexion, tâches récurrentes (`cleaner`)…
 - [x] **4. Mise en place des contraintes** — amélioration continue des conteneurs avec des mesures de consommation et ajout de probes adaptées : `liveness`, `readiness` et `startup`.
+- [x] **5. Accès réseau externe** - mise en place de l'ingress et de la réécriture des routes
+- [ ] **6. Packaging de manifests** - Kustomize 
 ---
 
 ## 🐳 1. Conteneuriser l'application
@@ -120,4 +122,33 @@ liveness sera toujours bonne car le pod API est toujours en vie.
 
  Mise en place des 3 probes pour les composants où ça a du sens et d'un QoS
 adapté.
+
+## 5. Ingress et middleware
+
+### Accès depuis l'exterieur
+
+  Mise en place d'un IngressRoute plutot qu'un Ingress car IngressRoute permet
+de matcher les regex.
+
+  L'idée de base était de rediriger tout le flux /api -> api et / -> web. Sauf
+que les redirections de se font via un slug, et ce slug doit être routé vers
+l'api. Par exemple: http://kort.fr/uufxqf/ doit rediriger vers l'API, donc je
+ne peux pas juste renvoyer /api -> api et / -> web. La question de rajouter
+/api/uufxqf c'est posé mais le but est d'avoir des urls courtes, c'est la
+valeur métier et l'infra ne doit pas la modifier.
+
+Donc j'ai utilisé ingress route pour matcher `[a-z0-9]{6}`, les slugs ont
+toujours 6 caractères alpha numérique.
+
+### Réécriture de la route
+
+J'ai utilisé un middleware pour réécrire les routes et enlever le /api. L'API
+est en python avec le framework FastAPI et j'aurai pu rajouter le middleware de
+coté mais le but ici est d'utiliser les composants K3s donc un middleware. Les
+routes ne commencent pas par /api donc c'est juste un composant qui réécrit par
+exmple /api/links -> /links
+
+
+## 6. Packaging de manifests
+
 

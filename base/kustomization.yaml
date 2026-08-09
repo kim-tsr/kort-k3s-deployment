@@ -1,9 +1,18 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: kort
+
+configMapGenerator:
+  - name: kort-config
+    literals:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - POSTGRES_DB=kort
+      - REDIS_URL=redis://redis:6379/0
+      - CLICK_STREAM=clicks
+      - CLICK_GROUP=aggregators
 resources:
   - namespace.yaml
-  - config/config-map.yaml
   - config/secret.yaml
   - api/deployment.yaml
   - api/service.yaml

@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: worker
-          image: kimtsr/kort-worker:1.0
+          image: kimtsr/kort-worker:latest
           envFrom:
             - configMapRef:
                 name: kort-config
