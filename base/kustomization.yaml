@@ -16,6 +16,7 @@ resources:
   - config/sealed-secret.yaml
   - api/deployment.yaml
   - api/service.yaml
+  - api/prometheus.yaml
   - web/deployment.yaml
   - web/service.yaml
   - postgres/statefulsets.yaml
